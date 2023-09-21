@@ -7,6 +7,8 @@ require (
 	github.com/stretchr/testify v1.8.4 // indirect
 	github.com/urfave/cli/v2 v2.25.7
 	golang.org/x/crypto v0.13.0
+	github.com/goharbor/harbor v2.9.0+incompatible // indirect
+    github.com/goharbor/harbor/src v0.0.0-20230918061625-4051b2b30298 // indirect
 )
 
 require (

@@ -9,6 +9,10 @@ import (
 	"strings"
 
 	"github.com/urfave/cli/v2"
+
+	"github.com/ppxl/harbor-space-analyzer/pkg/core"
+	"github.com/ppxl/harbor-space-analyzer/pkg/gfx"
+	"github.com/ppxl/harbor-space-analyzer/pkg/service"
 )
 
 const (
@@ -44,11 +48,54 @@ func Analyze() *cli.Command {
 
 // AnalyzeSpace does things
 func AnalyzeSpace(cliCtx *cli.Context) error {
-	getCredentials(&loginReader{})
+	creds, err := getCredentials(&loginReader{})
+	if err != nil {
+		return err
+	}
+
+	ctx := cliCtx.Context
+
+	// testdata
+	//karacters := []string{"A", "B", "x", "y", "z", "q", "p"}
+	//values := []float64{0.5, 0.25, 0.05, 0.05, 0.09, 0.01, 0.06}
+
+	radius := cliCtx.Int(flagAnalyzePieChart)
+	harborURL := cliCtx.String(flagAnalyzeEndpoint)
+
+	//if term.IsTerminal(0) {
+	//	println("in a term")
+	//} else {
+	//	println("not in a term")
+	//}
+	//width, height, err := term.GetSize(0)
+	//if err != nil {
+	//	return
+	//}
+	//println("width:", width, "height:", height)
+
+	args := core.AnalyzerArgs{Credentials: creds, HarborURL: harborURL}
+
+	projSum, err := service.New(args).GetProjectInfo(ctx)
+	if err != nil {
+		return err
+	}
+	//fmt.Printf("%#v\n", projSum)
+
+	karacters, values := service.CalculateValues(projSum)
+
+	fmt.Printf("%#v\n", values)
+
+	if radius == 0 {
+		return nil
+	}
+
+	pie := gfx.PrintChart(karacters, values, radius)
+	fmt.Println(pie)
+
 	return nil
 }
 
-func getCredentials(determinator credentialReader) (*harborCredentials, error) {
+func getCredentials(determinator credentialReader) (*core.HarborCredentials, error) {
 	username, err := determinator.readUsername()
 	if err != nil {
 		return nil, err
@@ -59,15 +106,10 @@ func getCredentials(determinator credentialReader) (*harborCredentials, error) {
 		return nil, fmt.Errorf("failed to get password: %w", err)
 	}
 
-	return &harborCredentials{
+	return &core.HarborCredentials{
 		Username: username,
 		Password: password,
 	}, nil
-}
-
-type harborCredentials struct {
-	Username string
-	Password string
 }
 
 type loginReader struct{}
