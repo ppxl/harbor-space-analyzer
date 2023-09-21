@@ -2,7 +2,7 @@
 
 `harbor-space-analyzer` (hsa) is a tool which polls information from a configurable Harbor instance in order to analyze size usages.
 
-Run `hsa` with a pretty pie chart of a 25 character radius.
+Run `hsa` with a pretty pie chart of an 8 character (line, not column) radius.
 
 ```bash
 go run -e analyze https://your/harbor/registry -p 8
