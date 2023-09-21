@@ -33,13 +33,11 @@ func configureLogging(cliCtx *cli.Context) error {
 }
 
 func main() {
-	osArgs := os.Args
-
 	app := cli.NewApp()
 	app.Version = version
 	app.Name = "hsa"
 	app.Usage = "analyze a harbor instance in terms of space"
-	app.Commands = []*cli.Command{cmd.Analyze()}
+	app.Commands = []*cli.Command{cmd.Analyze}
 	app.HideHelpCommand = true
 
 	app.Flags = parseGlobalFlags()
@@ -49,7 +47,7 @@ func main() {
 		return nil
 	}
 
-	err := app.Run(osArgs)
+	err := app.Run(os.Args)
 	exitOnError(err)
 }
 
@@ -65,7 +63,7 @@ func parseGlobalFlags() []cli.Flag {
 
 func exitOnError(err error) {
 	if err != nil {
-		log.Errorf("%+s\n", err)
+		fmt.Printf("%#v\n", err)
 		osExit.Exit(1)
 	}
 }

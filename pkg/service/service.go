@@ -7,10 +7,13 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/ppxl/harbor-space-analyzer/pkg/core"
 )
+
+const harborApiVersion = "/api/v2.0"
 
 type AnalyzeService struct {
 	args core.AnalyzerArgs
@@ -106,13 +109,16 @@ func (as *AnalyzeService) getRepoSummaries(ctx context.Context, projectName stri
 
 func (as *AnalyzeService) getArtifactsForRepo(ctx context.Context, projectName string, repoName string) ([]core.Artifact, error) {
 	repoName = escapeSlashes(repoName)
-	queryEndpoint := fmt.Sprintf("/projects/%s/repositories/%s/artifacts?page=1&page_size=100&with_tag=true'", projectName, repoName)
-	response, err := as.createAuthdGetRequest(ctx, queryEndpoint)
+	endpoint := fmt.Sprintf("/projects/%s/repositories/%s/artifacts?page=1&page_size=100&with_tag=true", projectName, repoName)
+	response, err := as.createAuthdGetRequest(ctx, endpoint)
 	if err != nil {
 		return nil, fmt.Errorf("failed to request artifact for project %s repo %s: %w", projectName, repoName, err)
 	}
 
 	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read body of request to %s: %w", endpoint, err)
+	}
 	var artifacts []core.Artifact
 	err = json.Unmarshal(body, &artifacts)
 	if err != nil {
@@ -123,28 +129,36 @@ func (as *AnalyzeService) getArtifactsForRepo(ctx context.Context, projectName s
 }
 
 func (as *AnalyzeService) getProjects(ctx context.Context) ([]core.Project, error) {
-	response, err := as.createAuthdGetRequest(ctx, "/projects?page=1&page_size=100&with_detail=false'")
+	const endpoint = "/projects?page=1&page_size=100&with_detail=false"
+	response, err := as.createAuthdGetRequest(ctx, endpoint)
 	if err != nil {
 		return nil, fmt.Errorf("failed to request projects: %w", err)
 	}
 
 	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read body of request to %s: %w", endpoint, err)
+	}
 	var projects []core.Project
 	err = json.Unmarshal(body, &projects)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get projects %s: %w", body, err)
+		return nil, fmt.Errorf("failed to unmarshal projects %s: %w", body, err)
 	}
 
 	return projects, nil
 }
 
 func (as *AnalyzeService) getReposByProject(ctx context.Context, prj core.Project) ([]core.CountingRepository, error) {
-	response, err := as.createAuthdGetRequest(ctx, "/projects/"+prj.Name+"/repositories?page=1&page_size=100")
+	endpoint := "/projects/" + prj.Name + "/repositories?page=1&page_size=100"
+	response, err := as.createAuthdGetRequest(ctx, endpoint)
 	if err != nil {
 		return nil, fmt.Errorf("repo request failed for endpoint /projects/%s/repositories: %w", prj.Name, err)
 	}
 
 	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read body of request to %s: %w", endpoint, err)
+	}
 	var repoList []core.CountingRepository
 	err = json.Unmarshal(body, &repoList)
 	if err != nil {
@@ -162,9 +176,13 @@ func (as *AnalyzeService) getReposByProject(ctx context.Context, prj core.Projec
 }
 
 func (as *AnalyzeService) createAuthdGetRequest(ctx context.Context, endpoint string) (*http.Response, error) {
-	baseURL := as.args.HarborURL
+	theUrl, err := url.JoinPath(as.args.HarborURL, harborApiVersion)
+	if err != nil {
+		return nil, fmt.Errorf("could not parse harbor URL with these fragments: %s, %s, %s: %w", as.args.HarborURL, harborApiVersion, err)
+	}
+	theUrl += endpoint
 
-	request, err := http.NewRequestWithContext(ctx, http.MethodGet, baseURL+endpoint, nil)
+	request, err := http.NewRequestWithContext(ctx, http.MethodGet, theUrl, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -173,11 +191,11 @@ func (as *AnalyzeService) createAuthdGetRequest(ctx context.Context, endpoint st
 
 	response, err := http.DefaultClient.Do(request)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("request to theUrl failed: %w", err)
 	}
 
 	// debug log
-	//fmt.Println("GET", baseURL+endpoint, "result:", response.Body)
+	//fmt.Println("GET", theUrl, "result:", response.Body)
 	return response, nil
 }
 

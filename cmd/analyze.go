@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"golang.org/x/crypto/ssh/terminal"
-	"log"
 	"os"
 	"strings"
 
@@ -26,38 +25,34 @@ type credentialReader interface {
 }
 
 // Analyze is a cmd entrypoint.
-func Analyze() *cli.Command {
-	return &cli.Command{
-		Name:        "analyze",
-		Usage:       "analyzes the configured harbor",
-		Description: "analyzes the configured harbor",
-		Action:      AnalyzeSpace,
-		ArgsUsage:   "-e <https://registryUrl>",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:  flagAnalyzeEndpoint + ", e",
-				Usage: "the Harbor endpoint URL, mandatory",
-			},
-			&cli.IntFlag{
-				Name:  flagAnalyzePieChart + ", p",
-				Usage: "print out a nice pie chart, optional (but you'll miss out)",
-			},
+var Analyze = &cli.Command{
+	Name:        "analyze",
+	Usage:       "analyzes the configured harbor",
+	Description: "analyzes the configured harbor",
+	Action:      analyzeSpace,
+	ArgsUsage:   "-e <https://registryUrl> [-p [radius]]",
+	Flags: []cli.Flag{
+		&cli.StringFlag{
+			Name:    flagAnalyzeEndpoint,
+			Aliases: []string{"e"},
+			Usage:   "the Harbor endpoint URL, mandatory",
 		},
-	}
+		&cli.IntFlag{
+			Name:    flagAnalyzePieChart,
+			Aliases: []string{"p"},
+			Usage:   "print out a nice pie chart, optional (but you'll miss out)",
+		},
+	},
 }
 
-// AnalyzeSpace does things
-func AnalyzeSpace(cliCtx *cli.Context) error {
+// analyzeSpace does things
+func analyzeSpace(cliCtx *cli.Context) error {
 	creds, err := getCredentials(&loginReader{})
 	if err != nil {
 		return err
 	}
 
 	ctx := cliCtx.Context
-
-	// testdata
-	//karacters := []string{"A", "B", "x", "y", "z", "q", "p"}
-	//values := []float64{0.5, 0.25, 0.05, 0.05, 0.09, 0.01, 0.06}
 
 	radius := cliCtx.Int(flagAnalyzePieChart)
 	harborURL := cliCtx.String(flagAnalyzeEndpoint)
@@ -77,7 +72,7 @@ func AnalyzeSpace(cliCtx *cli.Context) error {
 
 	projSum, err := service.New(args).GetProjectInfo(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to collect project data: %w", err)
 	}
 	//fmt.Printf("%#v\n", projSum)
 
@@ -115,7 +110,7 @@ func getCredentials(determinator credentialReader) (*core.HarborCredentials, err
 type loginReader struct{}
 
 func (*loginReader) readUsername() (string, error) {
-	fmt.Print("Username: ")
+	fmt.Print("\nUsername: ")
 
 	reader := bufio.NewReader(os.Stdin)
 	username, err := reader.ReadString('\n')
@@ -128,7 +123,7 @@ func (*loginReader) readUsername() (string, error) {
 
 // readPassword reads the password, but no characters are displayed for added security.
 func (*loginReader) readPassword() (string, error) {
-	log.Print("Password: ")
+	fmt.Print("Password: ")
 
 	stdInFileHandle := 0
 	bytePassword, err := terminal.ReadPassword(stdInFileHandle)
