@@ -78,8 +78,6 @@ func analyzeSpace(cliCtx *cli.Context) error {
 
 	karacters, values := service.CalculateValues(projSum)
 
-	fmt.Printf("%#v\n", values)
-
 	if radius == 0 {
 		return nil
 	}

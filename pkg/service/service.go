@@ -40,16 +40,23 @@ func CalculateValues(summaries []core.ProjectSummary) (karacters []string, usage
 		}
 		prjPercent := float64(prjSum.Size) / float64(usageTotal)
 		karacter := string('A' + int32(idx))
-		println("next char", karacter, "=", prjSum.ProjectName)
 
 		usagePercent = append(usagePercent, prjPercent)
 		karacters = append(karacters, karacter)
 	}
 
+	printLegend(summaries, karacters, usagePercent)
+
 	// fix hole in diagram
 	usagePercent[len(usagePercent)-1] += 0.001
 
 	return
+}
+
+func printLegend(summaries []core.ProjectSummary, karacters []string, percent []float64) {
+	for idx, kars := range karacters {
+		fmt.Printf("%s: %5.2f - %s\n", kars, percent[idx]*100.0, summaries[idx].ProjectName)
+	}
 }
 
 func (as *AnalyzeService) GetProjectInfo(ctx context.Context) ([]core.ProjectSummary, error) {
