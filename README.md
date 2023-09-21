@@ -5,7 +5,7 @@
 Run `hsa` with a pretty pie chart of a 25 character radius.
 
 ```bash
-go run -e https://your/harbor/registry -p 8
+go run -e analyze https://your/harbor/registry -p 8
 Username: yourUsername
 Password:
 ...
@@ -50,7 +50,7 @@ You can find out what's possible with the `--help` flags on every command.
 The `--pie` / `-p` let's you set the pie radius (in lines, that is)
 
 ```
-go run -e https://your/harbor/registry -p 16
+go run -e analyze https://your/harbor/registry -p 16
 ...
                       EEEEEEEEEEFFHHJJJJJJJJ                      
                   EEEEEEEEEEEEEEFFHHJJJJJJJJJJJJ                  
