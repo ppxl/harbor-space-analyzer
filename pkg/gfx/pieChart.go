@@ -3,14 +3,15 @@ package gfx
 import "math"
 
 // CharFactor determines how often a character will be repeated and thus how broad the pie will be skewed.
-// Usually, only values of 1 or 2 look okay.
+// Usually, only values of 1 (heavily skewed) or 2 (still skewed but better) look okay.
 var CharFactor = 2
 
-// PrintChart prints a lovely pie chart.
-func PrintChart(karacters []string, values []float64, r int) string {
+// CreateChart creates a pie chart on the given statistics and options. The pieRadius parameter is measured in terminal
+// characters.
+func CreateChart(karacters []string, values []float64, pieRadius int) string {
 	// this solution is heavily based on https://codegolf.stackexchange.com/a/23351/119676 so don't be mad
 	resultPie := ""
-	d := makeRange(-r, r)
+	d := makeRange(-pieRadius, pieRadius)
 
 	for yIdx, _ := range d {
 		currentLine := ""
@@ -18,7 +19,7 @@ func PrintChart(karacters []string, values []float64, r int) string {
 
 		for xIdx, _ := range d {
 			x := d[xIdx]
-			if x*x+y*y < r*r {
+			if x*x+y*y < pieRadius*pieRadius {
 				a := math.Atan2(float64(y), float64(x))/math.Pi/2 + .5
 				nextChar := s(karacters, values, a)
 				currentLine = currentLine + charTimes(nextChar, CharFactor)

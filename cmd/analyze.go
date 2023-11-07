@@ -82,7 +82,7 @@ func analyzeSpace(cliCtx *cli.Context) error {
 		return nil
 	}
 
-	pie := gfx.PrintChart(karacters, values, radius)
+	pie := gfx.CreateChart(karacters, values, radius)
 	fmt.Println(pie)
 
 	return nil
