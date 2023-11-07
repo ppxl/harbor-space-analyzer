@@ -76,14 +76,18 @@ func analyzeSpace(cliCtx *cli.Context) error {
 	}
 	//fmt.Printf("%#v\n", projSum)
 
-	karacters, values := service.CalculateValues(projSum)
+	karacters, usagePercents := service.CalculateValues(projSum)
+	// fix hole in diagram consisting of dashes
+	usagePercents[len(usagePercents)-1] += 0.001
+
+	gfx.PrintLegend(projSum, karacters, usagePercents)
 
 	if radius == 0 {
 		return nil
 	}
 
-	pie := gfx.CreateChart(karacters, values, radius)
-	fmt.Println(pie)
+	pie := gfx.CreateChart(karacters, usagePercents, radius)
+	gfx.PrintColorChart(karacters, pie)
 
 	return nil
 }

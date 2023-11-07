@@ -23,6 +23,7 @@ func New(args core.AnalyzerArgs) *AnalyzeService {
 	return &AnalyzeService{args: args}
 }
 
+// CalculateValues calculates the percentages per character key and returns both.
 func CalculateValues(summaries []core.ProjectSummary) (karacters []string, usagePercent []float64) {
 	// maybe move to type alias of []ProjectSummary
 	var usageTotal int64 = 0
@@ -45,18 +46,7 @@ func CalculateValues(summaries []core.ProjectSummary) (karacters []string, usage
 		karacters = append(karacters, karacter)
 	}
 
-	printLegend(summaries, karacters, usagePercent)
-
-	// fix hole in diagram
-	usagePercent[len(usagePercent)-1] += 0.001
-
 	return
-}
-
-func printLegend(summaries []core.ProjectSummary, karacters []string, percent []float64) {
-	for idx, kars := range karacters {
-		fmt.Printf("%s: %5.2f - %s\n", kars, percent[idx]*100.0, summaries[idx].ProjectName)
-	}
 }
 
 func (as *AnalyzeService) GetProjectInfo(ctx context.Context) ([]core.ProjectSummary, error) {
