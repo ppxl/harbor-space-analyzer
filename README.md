@@ -84,3 +84,5 @@ go run -e analyze https://your/harbor/registry -p 16
                   LLLLLLLLLLLLKKKKKKKKKKKKKKKKKK                  
                       LLLLLLLLKKKKKKKKKKKKKK  
 ```
+
+Also `hsa` has now color support.
